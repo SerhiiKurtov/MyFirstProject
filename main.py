@@ -43,3 +43,8 @@ CREATE TABLE IF NOT EXISTS "Bookings" (
 );
 ''')
 conn.commit()
+
+cur.execute('''
+CREATE UNIQUE INDEX IF NOT EXISTS idx_date_time ON Schedule (work_date, work_time);
+''')
+conn.commit()
