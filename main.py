@@ -20,3 +20,13 @@ CREATE TABLE IF NOT EXISTS "Procedure" (
 );
 ''')
 conn.commit()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS "Schedule" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT,
+    "work_date" TEXT NOT NULL,
+    "work_time" TEXT NOT NULL,
+    "is_available" INTEGER DEFAULT 1
+);
+''')
+conn.commit()
