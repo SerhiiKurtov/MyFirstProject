@@ -30,3 +30,16 @@ CREATE TABLE IF NOT EXISTS "Schedule" (
 );
 ''')
 conn.commit()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS "Bookings" (
+    "status" TEXT DEFAULT 'pending',
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "client_id" INTEGER,
+    "procedure_id" INTEGER,
+    "full_time" TEXT NOT NULL, -- Формат: 'YYYY-MM-DD HH:MM'
+    FOREIGN KEY ("client_id") REFERENCES "Client" ("id"),
+    FOREIGN KEY ("procedure_id") REFERENCES "Procedure" ("id")
+);
+''')
+conn.commit()
