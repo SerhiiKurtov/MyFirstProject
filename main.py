@@ -11,3 +11,12 @@ CREATE TABLE IF NOT EXISTS "Client" (
 );
 ''')
 conn.commit()
+
+cur.execute('''
+CREATE TABLE IF NOT EXISTS "Procedure" (
+    "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    "title" TEXT NOT NULL,
+    "price" INTEGER
+);
+''')
+conn.commit()
