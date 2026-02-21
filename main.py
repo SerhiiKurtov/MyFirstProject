@@ -1,5 +1,7 @@
 import sqlite3
 
+import calendar
+
 conn = sqlite3.connect('salon.sqlite')
 cur = conn.cursor()
 
@@ -64,3 +66,42 @@ def add_procedures(cur, conn) :
     conn.commit()
 
 #add_procedures(cur, conn)
+
+def setup_schedule(cur, conn) :
+
+    try :
+        year = int(input("Виберіть рік (наприклад 2026): ").strip())
+        month = int(input("Виберіть місяць від 1 до 12: ").strip())
+    except Exception as e :
+        print(f"Виникла помилка: {e}, введіть данні цифрами!")
+        return
+
+    num_day = calendar.monthrange(year, month)[1]
+
+    time_day = []
+    while True :
+        hour = input("Введіть час прийому, для завершення введіть стоп: ").strip()
+        if hour.lower() == 'стоп' :
+            print("Робоці години визначені!")
+            break
+        time_day.append(hour)
+
+    for day in range(1, num_day + 1) :
+        current_data = f"{year}-{month:02}-{day:02}"
+        for hour in time_day :
+            try :
+                cur.execute("INSERT INTO Schedule (work_date, work_time) VALUES (?, ?)", (current_data, hour))
+            except sqlite3.IntegrityError :
+                print(f"Помилка: Час {hour} на цю дату вже існує!")
+            except Exception as e :
+                print(f"Виникла помилка: {e}")
+    conn.commit()
+
+    weekend_input = input("Введіть числа місяця, які будуть вихідними (через пробіл): ").strip().split()
+    for day_off in weekend_input :
+        weekends = f"{year}-{month:02}-{int(day_off):02}"
+        cur.execute("UPDATE Schedule SET is_available = 2 WHERE work_date = ?", (weekends,))
+        print(f"Вихідні: {weekends}")
+    conn.commit()
+
+#setup_schedule(cur, conn)
