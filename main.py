@@ -48,3 +48,19 @@ cur.execute('''
 CREATE UNIQUE INDEX IF NOT EXISTS idx_date_time ON Schedule (work_date, work_time);
 ''')
 conn.commit()
+
+def add_procedures(cur, conn) :
+    while True :
+        services = input("Введіть назву процедури, для завершення введіть стоп: ").strip()
+        if services.lower() == 'стоп' :
+            print("Процедури збережені!")
+            break
+        services_price = input(f"Ввудіть ціну процедури {services}: ").strip()
+        try :
+            cur.execute("INSERT INTO Procedure (title, price) VALUES (?, ?)", (services, services_price))
+            print(f"{services} - {services_price} грн збережено!")
+        except Exception as e :
+            print(f"Виникла помилка: {e}")
+    conn.commit()
+
+#add_procedures(cur, conn)
