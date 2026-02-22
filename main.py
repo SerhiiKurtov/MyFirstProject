@@ -105,3 +105,33 @@ def setup_schedule(cur, conn) :
     conn.commit()
 
 #setup_schedule(cur, conn)
+
+def records(cur, conn) :
+    cur.execute('''
+        SELECT Bookings.id, Client.name, Bookings.full_time
+        FROM Bookings JOIN Client
+        ON Bookings.client_id = Client.id
+    ''')
+    rows = cur.fetchall()
+    if not rows :
+        print("Записів поки немає.")
+    else :
+        for row in rows :
+            print(f"ID: {row[0]:<3} | Клієнт: {row[1]:<30} | Час: {row[2]}")
+
+    cancel_id = input("Введіть ID запису для СКАСУВАННЯ (або натисніть Enter, щоб вийти) :").strip()
+    if cancel_id :
+        cur.execute("SELECT full_time FROM Bookings WHERE id = ?", (cancel_id,))
+        result = cur.fetchone()
+        if result :
+            booked_time = result[0]
+            date_part, time_part = booked_time.split()
+            cur.execute("UPDATE Schedule SET is_available = 1 WHERE work_date = ? AND work_time = ?", (date_part, time_part))
+            cur.execute("DELETE FROM Bookings WHERE id = ?", (cancel_id,))
+            conn.commit()
+            print("Запис успішно скасовано, час знову вільний!")
+        else :
+            print("Запис з таким ID не знайдено.")
+    conn.commit()
+
+#records(cur, conn)
