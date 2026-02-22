@@ -105,3 +105,95 @@ def setup_schedule(cur, conn) :
     conn.commit()
 
 #setup_schedule(cur, conn)
+
+def records(cur, conn) :
+    cur.execute('''
+        SELECT Bookings.id, Client.name, Bookings.full_time
+        FROM Bookings JOIN Client
+        ON Bookings.client_id = Client.id
+    ''')
+    rows = cur.fetchall()
+    if not rows :
+        print("Записів поки немає.")
+    else :
+        for row in rows :
+            print(f"ID: {row[0]:<3} | Клієнт: {row[1]:<30} | Час: {row[2]}")
+
+    cancel_id = input("Введіть ID запису для СКАСУВАННЯ (або натисніть Enter, щоб вийти) :").strip()
+    if cancel_id :
+        cur.execute("SELECT full_time FROM Bookings WHERE id = ?", (cancel_id,))
+        result = cur.fetchone()
+        if result :
+            booked_time = result[0]
+            date_part, time_part = booked_time.split()
+            cur.execute("UPDATE Schedule SET is_available = 1 WHERE work_date = ? AND work_time = ?", (date_part, time_part))
+            cur.execute("DELETE FROM Bookings WHERE id = ?", (cancel_id,))
+            conn.commit()
+            print("Запис успішно скасовано, час знову вільний!")
+        else :
+            print("Запис з таким ID не знайдено.")
+    conn.commit()
+
+#records(cur, conn)
+
+def client_booking(cur, conn) :
+    cur.execute("SELECT id, title, price FROM Procedure")
+    rows = cur.fetchall()
+    if not rows :
+        print("Послуги не існує.")
+    else :
+        for row in rows :
+            print(f"ID: {row[0]:<3} | Процедура: {row[1]:<30} | Ціна: {row[2]}")
+
+    valid_ids = [row[0] for row in rows]
+    try :
+        services = int(input("Оберіть номер бажаної процедури: ").strip())
+    except :
+        print("Введіть значення цифрою")
+        return
+    if services in valid_ids :
+        cur.execute("SELECT id, work_date, work_time FROM Schedule WHERE is_available = 1")
+        data = cur.fetchall()
+        if not data :
+            print("Дати не існує.")
+        else :
+            for date in data :
+                print(f"ID: {date[0]:<3} | Дата: {date[1]:<15} | Час: {date[2]}")
+    else :
+        return
+    try :
+        date_service = int(input("Оберіть номер бажаного часу: ").strip())
+    except :
+        print("Введіть значення цифрою")
+        return
+    cur.execute("SELECT work_date, work_time FROM Schedule WHERE id = ?", (date_service,))
+    res = cur.fetchone()
+    if not res :
+        print("Такий час не знайдено!")
+        return
+    selected_time = f"{res[0]} {res[1]}"
+
+    while True :
+        name = input("Введіть ваше ім'я та прізвище: ").strip()
+        if " " in name and len(name) >= 5 :
+            break
+        else :
+            print("Помилка: введіть, будь ласка, і ім'я, і прізвище!")
+
+    while True :
+        phone = input("Введіть номер телефону: ").strip()
+        if phone.isdigit() and len(phone) == 10 :
+            print("Дякуємо! Номер прийнято.")
+            break
+        else :
+            print("Введіть коретний номер телефону!")
+    conn.commit()
+
+    #client_booking(cur, conn)
+
+    cur.execute("INSERT INTO Client (name, phone) VALUES (?, ?)", (name, phone))
+    client_id = cur.lastrowid
+    cur.execute("INSERT INTO Bookings (client_id, procedure_id, full_time) VALUES (?, ?, ?)", (client_id, services, selected_time))
+    cur.execute("UPDATE Schedule SET is_available = 0 WHERE id = ?", (date_service,))
+    conn.commit()
+    print(f"Запис успішно створено! Чекаємо на вас {selected_time}")
