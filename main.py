@@ -197,3 +197,32 @@ def client_booking(cur, conn) :
     cur.execute("UPDATE Schedule SET is_available = 0 WHERE id = ?", (date_service,))
     conn.commit()
     print(f"Запис успішно створено! Чекаємо на вас {selected_time}")
+
+def confirm_booking(cur, conn) :
+    cur.execute('''
+        SELECT Bookings.id, Bookings.status, Client.name, Procedure.title, Bookings.full_time
+        FROM Bookings
+        JOIN Client ON Bookings.client_id = Client.id
+        JOIN Procedure ON Bookings.procedure_id = Procedure.id
+        WHERE Bookings.status = 'pending'
+        ''')
+    rows = cur.fetchall()
+    if not rows :
+        print("Запису не існує")
+    else :
+        for row in rows :
+                print(f"ID: {row[0]:<3} | Статус: {row[1]:<30} | Клієнт: {row[2]:<30} | Процедура: {row[3]:<30} | Дата: {row[4]:<30}")
+
+    while True :
+        confirm = input("Виберіть ID для підтвердження(стоп для завершення):").strip()
+        if confirm.lower() == 'стоп' :
+            print("Допобачення")
+            break
+        elif confirm.isdigit() :
+            cur.execute("UPDATE Bookings SET status = ? WHERE id = ?", ('confirmed', confirm))
+            print(f"Запис №{confirm} підтверджено!")
+        else :
+            print("Введіть коректне ID")
+    conn.commit()
+
+#confirm_booking(cur, conn)
