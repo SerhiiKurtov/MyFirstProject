@@ -39,7 +39,7 @@ CREATE TABLE IF NOT EXISTS "Bookings" (
     "id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     "client_id" INTEGER,
     "procedure_id" INTEGER,
-    "full_time" TEXT NOT NULL, -- Формат: 'YYYY-MM-DD HH:MM'
+    "full_time" TEXT NOT NULL,
     FOREIGN KEY ("client_id") REFERENCES "Client" ("id"),
     FOREIGN KEY ("procedure_id") REFERENCES "Procedure" ("id")
 );
@@ -64,8 +64,6 @@ def add_procedures(cur, conn) :
         except Exception as e :
             print(f"Виникла помилка: {e}")
     conn.commit()
-
-#add_procedures(cur, conn)
 
 def setup_schedule(cur, conn) :
 
@@ -104,8 +102,6 @@ def setup_schedule(cur, conn) :
         print(f"Вихідні: {weekends}")
     conn.commit()
 
-#setup_schedule(cur, conn)
-
 def records(cur, conn) :
     cur.execute('''
         SELECT Bookings.id, Client.name, Bookings.full_time
@@ -133,8 +129,6 @@ def records(cur, conn) :
         else :
             print("Запис з таким ID не знайдено.")
     conn.commit()
-
-#records(cur, conn)
 
 def client_booking(cur, conn) :
     cur.execute("SELECT id, title, price FROM Procedure")
@@ -189,8 +183,6 @@ def client_booking(cur, conn) :
             print("Введіть коретний номер телефону!")
     conn.commit()
 
-    #client_booking(cur, conn)
-
     cur.execute("INSERT INTO Client (name, phone) VALUES (?, ?)", (name, phone))
     client_id = cur.lastrowid
     cur.execute("INSERT INTO Bookings (client_id, procedure_id, full_time) VALUES (?, ?, ?)", (client_id, services, selected_time))
@@ -225,8 +217,6 @@ def confirm_booking(cur, conn) :
             print("Введіть коректне ID")
     conn.commit()
 
-#confirm_booking(cur, conn)
-
 def show_revenue(cur, conn) :
     cur.execute('''
         SELECT SUM(price)
@@ -238,4 +228,44 @@ def show_revenue(cur, conn) :
     conn.commit()
     print(f"Загальна сума: {total}")
 
-#show_revenue(cur, conn)
+def menu(cur, conn) :
+    while True :
+        main_menu = (f"Головне меню\n"
+                    f"Введіть 1 - додати процедури\n"
+                    f"Введіть 2 - налаштувати графік\n"
+                    f"Введіть 3 - переглянути\скасувати записи\n"
+                    f"Введіть 4 - для запису на процедуру\n"
+                    f"Введіть 5 - для підтвердження запису\n"
+                    f"Введіть 6 - звіт про доход\n"
+                    f"Введіть 0 - вихід\n")
+        print(main_menu)
+        try :
+            action = int(input("Оберіть дію: ").strip())
+        except :
+            print("Введіть значення цифрою")
+            continue
+        if action == 0 :
+            break
+        elif action == 1 :
+            add_procedures(cur, conn)
+
+        elif action == 2 :
+            setup_schedule(cur, conn)
+
+        elif action == 3 :
+            records(cur, conn)
+
+        elif action == 4 :
+            client_booking(cur, conn)
+
+        elif action == 5 :
+            confirm_booking(cur, conn)
+
+        elif action == 6 :
+            show_revenue(cur, conn)
+
+        else :
+            print("'-'*20\n")
+            print("Будь ласка, оберіть цифру від 0 до 6.")
+
+menu(cur, conn)
