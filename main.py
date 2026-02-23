@@ -226,3 +226,16 @@ def confirm_booking(cur, conn) :
     conn.commit()
 
 #confirm_booking(cur, conn)
+
+def show_revenue(cur, conn) :
+    cur.execute('''
+        SELECT SUM(price)
+        FROM Procedure JOIN Bookings
+        ON Procedure.id = Bookings.procedure_id
+    ''')
+    result = cur.fetchone()
+    total = result[0] if result[0] is not None else 0
+    conn.commit()
+    print(f"Загальна сума: {total}")
+
+#show_revenue(cur, conn)
